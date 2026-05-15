@@ -9,6 +9,26 @@ class UserBase(BaseModel):
 class User(UserBase):
     id: str
 
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    role: str = "patient" # 'patient' or 'clinician'
+    name: str
+    age: Optional[int] = None
+    clinic_id: str = "default_clinic"
+    xp: int = 0
+    level: int = 1
+
+class UserInDB(UserCreate):
+    hashed_password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
 class GameSessionMetrics(BaseModel):
     child_id: str
     reaction_time_ms: float

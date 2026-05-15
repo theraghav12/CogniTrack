@@ -95,22 +95,22 @@ export default function ShapeShifterGame({ onBackToHome }) {
     // Effect to handle endGame after state finishes updating
     useEffect(() => {
         if (gameState === 'complete' && apiStatus === 'loading') {
-            const avgReactionTime = reactionTimes.length > 0 
+            const avgReaction = reactionTimes.length > 0 
                 ? reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length 
                 : 0;
-            const accuracyRate = correctCount / TOTAL_TRIALS;
+            const accuracy = (correctCount / TOTAL_TRIALS) * 100;
 
             const payload = {
-                child_id: "test_user_01",
-                accuracy_rate: Math.round(accuracyRate * 100) / 100,
-                avg_reaction_time_ms: Math.round(avgReactionTime * 100) / 100
+                child_id: user.username,
+                accuracy_rate: accuracy / 100,
+                avg_reaction_time_ms: avgReaction
             };
 
             submitFlexibilityMetrics(payload)
                 .then(() => setApiStatus('success'))
                 .catch(() => setApiStatus('error'));
         }
-    }, [gameState, apiStatus, reactionTimes, correctCount]);
+    }, [gameState, apiStatus, reactionTimes, correctCount, user]);
 
     // UI Helpers
     const renderShape = (shape, colorClass) => {

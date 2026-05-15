@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { submitGameMetrics } from '../utils/api';
+import { submitGameMetrics, fetchCognitiveProfile } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import ClinicalInfoModal from './ClinicalInfoModal';
 
 const TOTAL_TRIALS = 20;
 const GO_PROBABILITY = 0.8;
-const MAX_RESPONSE_TIME_MS = 1000;
-const MIN_DELAY_MS = 1000;
-const MAX_DELAY_MS = 2500;
 
 export default function GoNoGoGame({ onBackToHome }) {
+    const { user } = useAuth();
     const [gameState, setGameState] = useState('idle'); // idle, playing, complete
     const [target, setTarget] = useState(null); // null, 'GO', 'NO_GO'
     const [trialCount, setTrialCount] = useState(0);
@@ -21,10 +20,41 @@ export default function GoNoGoGame({ onBackToHome }) {
     const [omissionErrors, setOmissionErrors] = useState(0);
     const [commissionErrors, setCommissionErrors] = useState(0);
 
+    // Adaptive Difficulty Parameters
+    const maxResponseTimeRef = useRef(1000);
+    const minDelayRef = useRef(1000);
+    const maxDelayRef = useRef(2500);
+    const [difficultyLevel, setDifficultyLevel] = useState("Standard");
+
     const startTimeRef = useRef(0);
     const timeoutRef = useRef(null);
     const isTargetActiveRef = useRef(false);
     const currentTargetRef = useRef(null);
+
+    // Fetch cognitive profile to adapt difficulty
+    useEffect(() => {
+        const loadProfile = async () => {
+            if (user && user.role === 'patient') {
+                try {
+                    const profile = await fetchCognitiveProfile(user.username);
+                    if (profile && profile.processing_speed_score === 'High') {
+                        maxResponseTimeRef.current = 700; // 30% faster response needed
+                        minDelayRef.current = 800;
+                        maxDelayRef.current = 2000;
+                        setDifficultyLevel("Hard (Adaptive)");
+                    } else if (profile && profile.processing_speed_score === 'Low') {
+                        maxResponseTimeRef.current = 1300; // More time allowed
+                        minDelayRef.current = 1200;
+                        maxDelayRef.current = 3000;
+                        setDifficultyLevel("Easy (Adaptive)");
+                    }
+                } catch (e) {
+                    console.log("No existing profile found. Using standard difficulty.");
+                }
+            }
+        };
+        loadProfile();
+    }, [user]);
 
     const startGame = () => {
         setGameState('playing');
@@ -44,7 +74,7 @@ export default function GoNoGoGame({ onBackToHome }) {
 
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-        const delay = Math.random() * (MAX_DELAY_MS - MIN_DELAY_MS) + MIN_DELAY_MS;
+        const delay = Math.random() * (maxDelayRef.current - minDelayRef.current) + minDelayRef.current;
         timeoutRef.current = setTimeout(showTarget, delay);
     }, []);
 
@@ -58,7 +88,7 @@ export default function GoNoGoGame({ onBackToHome }) {
         startTimeRef.current = performance.now();
 
         // Auto-timeout if the user doesn't respond
-        timeoutRef.current = setTimeout(handleTimeout, MAX_RESPONSE_TIME_MS);
+        timeoutRef.current = setTimeout(handleTimeout, maxResponseTimeRef.current);
     }, []);
 
     const endTrial = useCallback((isCorrect, feedbackType) => {
@@ -145,7 +175,7 @@ export default function GoNoGoGame({ onBackToHome }) {
             : 0;
 
         const payload = {
-            child_id: "test_user_01",
+            child_id: user.username,
             reaction_time_ms: Math.round(avgReactionTime * 100) / 100, // Round to 2 decimals
             omission_errors: omissionErrors,
             commission_errors: commissionErrors
@@ -178,12 +208,17 @@ export default function GoNoGoGame({ onBackToHome }) {
                             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         </div>
 
-                        <h2 className="text-4xl font-black text-white mb-6 tracking-tight">Go / No-Go Test</h2>
-                        <p className="text-slate-300 mb-10 text-lg leading-relaxed px-4">
-                            Test response inhibition and sustained attention.<br /><br />
-                            When the <strong className="text-emerald-400 mx-1">Green Sphere</strong> appears, <b>CLICK</b> immediately.<br />
-                            When the <strong className="text-rose-400 mx-1">Red Diamond</strong> appears, <b>DO NOTHING</b>.
+                        <h2 className="text-3xl font-bold text-white mb-4">Go / No-Go Test</h2>
+                        <p className="text-slate-400 mb-8 max-w-md mx-auto leading-relaxed">
+                            Test your sustained attention and impulse control. Click as fast as possible when you see a <strong className="text-blue-400">blue circle (GO)</strong>, but do absolutely nothing when you see an <strong className="text-rose-400">orange square (NO-GO)</strong>.
                         </p>
+                        
+                        {difficultyLevel !== "Standard" && (
+                            <div className="mb-8 inline-block bg-purple-500/20 text-purple-300 px-4 py-2 rounded-full text-sm font-medium border border-purple-500/30">
+                                ✨ Adaptive AI Difficulty: {difficultyLevel}
+                            </div>
+                        )}
+
                         <button
                             onClick={startGame}
                             className="group relative px-12 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full font-bold text-lg text-white shadow-lg shadow-blue-500/30 overflow-hidden transition-all hover:scale-105 hover:shadow-blue-500/50 active:scale-95"

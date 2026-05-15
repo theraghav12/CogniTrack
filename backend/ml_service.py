@@ -30,15 +30,17 @@ def analyze_cognitive_metrics(metrics: GameSessionMetrics, existing_profile: Opt
     new_recs = [r for r in recommendations if ("memory" in r.lower() or "span" in r.lower() or "flexibility" in r.lower() or "rule" in r.lower() or "speed" in r.lower() or "search" in r.lower())]
     
     if attention_score == "Low":
-        new_recs.append("Recommend shorter, more frequent play sessions to build attention stamina.")
+        new_recs.append("Patient exhibits clinically significant deficits in sustained attention and vigilance. Indications of attentional fatigue observed. Recommend initiating a regimen of high-frequency, low-duration cognitive behavioral interventions targeting continuous performance tasks (CPTs) to progressively increase attentional stamina.")
     elif attention_score == "High":
-        new_recs.append("Excellent sustained attention. Introduce more complex visual distillers.")
+        new_recs.append("Sustained attention metrics indicate supranormal vigilance and negligible attentional degradation over time. Recommend introducing complex, multi-modal visual distractors to establish upper thresholds of cognitive load tolerance.")
         
     if impulsivity_score == "High":
-        new_recs.append("High commission error rate. Practice response inhibition through 'Stop-Signal' games.")
+        new_recs.append("Elevated commission error rates indicate pronounced deficits in motor response inhibition and prefrontal cognitive control. Strongly recommend immediate initiation of 'Stop-Signal' and delayed-gratification protocols to mitigate impulsive neurobehavioral tendencies.")
+    elif impulsivity_score == "Low":
+        new_recs.append("Exceptional motor response inhibition observed. Patient demonstrates superior prefrontal executive control and successful suppression of prepotent motor responses.")
         
     if not new_recs and not (existing_profile and (existing_profile.working_memory_score or existing_profile.cognitive_flexibility_score or existing_profile.processing_speed_score)):
-        new_recs.append("Healthy cognitive performance detected. Maintain current engagement levels.")
+        new_recs.append("Comprehensive cognitive telemetry indicates healthy, normative neurological function across evaluated domains. No acute clinical intervention is currently indicated. Maintain current neurodevelopmental engagement strategies.")
 
     return CognitiveProfile(
         child_id=metrics.child_id,
@@ -67,9 +69,9 @@ def analyze_memory_metrics(metrics: MemorySessionMetrics, existing_profile: Opti
     new_recs = [r for r in recommendations if not ("memory" in r.lower() or "span" in r.lower())]
 
     if working_memory_score == "Low":
-        new_recs.append("Visuospatial memory span is below average. Recommend regular block-tapping exercises.")
+        new_recs.append("Visuospatial working memory span falls significantly below normative developmental milestones. Recommend structured therapeutic interventions utilizing spatial-sequential block-tapping to enhance dorsolateral prefrontal cortex (DLPFC) engagement and retention capacity.")
     elif working_memory_score == "High":
-        new_recs.append("Excellent working memory span detected. Introduce dual n-back tasks for further challenge.")
+        new_recs.append("Visuospatial working memory span exceeds the 85th percentile. Patient demonstrates robust spatial encoding and retrieval capacities. Recommend advancing to dual N-back tasks with concurrent auditory-visual interference.")
 
     return CognitiveProfile(
         child_id=metrics.child_id,
@@ -98,9 +100,9 @@ def analyze_flexibility_metrics(metrics: FlexibilitySessionMetrics, existing_pro
     new_recs = [r for r in recommendations if not ("flexibility" in r.lower() or "rule" in r.lower() or "switch" in r.lower())]
 
     if flexibility_score == "Low":
-        new_recs.append("Cognitive flexibility indicates difficulty with rule-switching. Recommend games involving sorting by multiple criteria.")
+        new_recs.append("Metrics indicate a high perseveration rate and significant cognitive rigidity during rule-switching paradigms, suggesting deficits in set-shifting executive functions. Recommend multi-criteria sorting therapies (e.g., modified WCST protocols) to enhance prefrontal adaptability.")
     elif flexibility_score == "High":
-        new_recs.append("High cognitive flexibility. The patient adapts rapidly to new rule sets without significant accuracy drops.")
+        new_recs.append("Patient demonstrates exceptional set-shifting capabilities with minimal switch costs (accuracy and latency). Indicates robust cognitive flexibility and executive adaptability in dynamic environments.")
 
     return CognitiveProfile(
         child_id=metrics.child_id,
@@ -129,9 +131,9 @@ def analyze_speed_metrics(metrics: SpeedSessionMetrics, existing_profile: Option
     new_recs = [r for r in recommendations if not ("speed" in r.lower() or "search" in r.lower() or "trail" in r.lower())]
 
     if speed_score == "Low":
-        new_recs.append("Processing speed and visual search are below expected thresholds. Recommend visual scanning exercises.")
+        new_recs.append("Psychomotor processing speed and visual translation latency are significantly elevated. Suggests deficits in rapid perceptual-motor coupling. Recommend targeted perceptual-motor velocity training and dynamic visual search therapies.")
     elif speed_score == "High":
-        new_recs.append("Exceptional processing speed and visual scanning abilities detected.")
+        new_recs.append("Psychomotor processing speed and visual scanning efficiency are situated in the superior clinical range. Negligible cognitive latency observed during complex trail-making assessments.")
 
     return CognitiveProfile(
         child_id=metrics.child_id,

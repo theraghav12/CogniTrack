@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { submitSpeedMetrics } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import ClinicalInfoModal from './ClinicalInfoModal';
 
 const SEQUENCE = ['1', 'A', '2', 'B', '3', 'C', '4', 'D', '5', 'E'];
 
 export default function ConnectStarsGame({ onBackToHome }) {
+    const { user } = useAuth();
     const [gameState, setGameState] = useState('idle'); // idle, playing, complete
     const [stars, setStars] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -104,7 +106,7 @@ export default function ConnectStarsGame({ onBackToHome }) {
     useEffect(() => {
         if (gameState === 'complete' && apiStatus === 'loading') {
             const payload = {
-                child_id: "test_user_01",
+                child_id: user.username,
                 completion_time_ms: completionTime,
                 errors_made: errorCount
             };

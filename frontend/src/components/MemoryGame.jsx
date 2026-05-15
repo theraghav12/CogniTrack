@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { submitMemoryMetrics } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import ClinicalInfoModal from './ClinicalInfoModal';
 
 const GRID_SIZE = 9; // 3x3
@@ -8,6 +9,7 @@ const LIT_DURATION_MS = 600;
 const DELAY_BETWEEN_LIT_MS = 200;
 
 export default function MemoryGame({ onBackToHome }) {
+    const { user } = useAuth();
     const [gameState, setGameState] = useState('idle'); // idle, playing, complete
     const [sequence, setSequence] = useState([]);
     const [userStep, setUserStep] = useState(0);
@@ -87,7 +89,7 @@ export default function MemoryGame({ onBackToHome }) {
         setApiStatus('loading');
 
         const payload = {
-            child_id: "test_user_01",
+            child_id: user.username,
             max_span: maxSpan
         };
 
